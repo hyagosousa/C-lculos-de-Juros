@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -171,6 +172,7 @@ function salvarCliente(){
 function excluirCliente(i){ clientes.splice(i,1); localStorage.setItem("clientes", JSON.stringify(clientes)); atualizarTabela(); calcularTotais(); }
 function marcarPago(i){ clientes[i].pago = true; localStorage.setItem("clientes", JSON.stringify(clientes)); atualizarTabela(); calcularTotais(); }
 function cobrar(telefone){ let msg = encodeURIComponent("Opa, hoje vence aquela questão"); window.open(`https://wa.me/55${telefone}?text=${msg}`, "_blank"); }
+
 function enviarAlertaAtrasados(){
     let hoje = new Date();
     let atrasados = clientes.filter(c => !c.pago && c.dataVenc && new Date(c.dataVenc) < hoje);
@@ -250,5 +252,3 @@ function exportarPDF(){
 
 </body>
 </html>
-
-
