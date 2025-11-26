@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -23,7 +22,6 @@
     th { background: #ddd; cursor: pointer; }
     .historico { margin-top: 20px; }
 
-    /* Piscar para clientes atrasados */
     .piscar { animation: piscarAnim 1s infinite; }
     @keyframes piscarAnim {
         0% { background-color: #ffb3b3; }
@@ -171,18 +169,17 @@ function salvarCliente(){
 
 function excluirCliente(i){ clientes.splice(i,1); localStorage.setItem("clientes", JSON.stringify(clientes)); atualizarTabela(); calcularTotais(); }
 function marcarPago(i){ clientes[i].pago = true; localStorage.setItem("clientes", JSON.stringify(clientes)); atualizarTabela(); calcularTotais(); }
-function cobrar(telefone){ let msg = encodeURIComponent("Opa, hoje vence aquela questão"); window.open(`https://wa.me/55${telefone}?text=${msg}`, "_blank"); }
+function cobrar(telefone, valorFinal, dataVenc, nome){
+    let valorFormatado = valorFinal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    let msg = `Opa ${nome}, sua dívida de ${valorFormatado} vence em ${dataVenc}. Por favor, realize o pagamento. Obrigado!`;
+    window.open(`https://wa.me/55${telefone}?text=${encodeURIComponent(msg)}`, "_blank");
+}
 
 function enviarAlertaAtrasados(){
     let hoje = new Date();
     let atrasados = clientes.filter(c => !c.pago && c.dataVenc && new Date(c.dataVenc) < hoje);
-    if(atrasados.length===0){ alert("Não há clientes atrasados no momento!"); return; }
-    atrasados.forEach(c => {
-        let valorFormatado = c.valorFinal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-        let msg = `Opa ${c.nome}, sua parcela de ${valorFormatado} venceu em ${c.dataVenc}. Por favor, realize o pagamento. Obrigado!`;
-        let url = `https://wa.me/55${c.telefone}?text=${encodeURIComponent(msg)}`;
-        window.open(url,"_blank");
-    });
+    if(atrasados.length === 0){ alert("Não há clientes atrasados no momento!"); return; }
+    atrasados.forEach(c => { cobrar(c.telefone, c.valorFinal, c.dataVenc, c.nome); });
 }
 
 function calcularTotais(){
@@ -226,7 +223,7 @@ function atualizarTabela(){
             <td class="valor-total">${formatarMoeda(c.valorFinal)}</td>
             <td>${c.dataVenc||'-'}</td>
             <td>
-                <button onclick="cobrar('${c.telefone}')">💰 Cobrar</button>
+                <button onclick="cobrar('${c.telefone}', ${c.valorFinal}, '${c.dataVenc}', '${c.nome}')">💰 Cobrar</button>
                 <button onclick="excluirCliente(${i})" style="background:red;color:white; margin-top:5px;">❌ Excluir</button>
                 ${!c.pago ? `<button onclick="marcarPago(${i})" style="background:green;color:white;margin-top:5px;">✅ Pago</button>` : ''}
             </td>
