@@ -106,6 +106,7 @@ if (!localStorage.getItem("logado")) {
     </select>
 
     <button style="background:#ffc107;color:black;" onclick="exportarPDF()">Exportar PDF</button>
+    <button style="background:#17a2b8;color:white;" onclick="enviarAlertaAtrasados()">📩 Enviar alerta para atrasados</button>
 </div>
 
 <div class="container historico">
@@ -175,6 +176,18 @@ function excluirCliente(i){ clientes.splice(i,1); localStorage.setItem("clientes
 function marcarPago(i){ clientes[i].pago = true; localStorage.setItem("clientes", JSON.stringify(clientes)); atualizarTabela(); calcularTotais(); }
 function cobrar(telefone){ let msg = encodeURIComponent("Opa, hoje vence aquela questão"); window.open(`https://wa.me/55${telefone}?text=${msg}`, "_blank"); }
 
+function enviarAlertaAtrasados(){
+    let hoje = new Date();
+    let atrasados = clientes.filter(c => !c.pago && c.dataVenc && new Date(c.dataVenc) < hoje);
+    if(atrasados.length===0){ alert("Não há clientes atrasados no momento!"); return; }
+    atrasados.forEach(c => {
+        let valorFormatado = c.valorFinal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        let msg = `Opa ${c.nome}, sua parcela de ${valorFormatado} venceu em ${c.dataVenc}. Por favor, realize o pagamento. Obrigado!`;
+        let url = `https://wa.me/55${c.telefone}?text=${encodeURIComponent(msg)}`;
+        window.open(url,"_blank");
+    });
+}
+
 function calcularTotais(){
     let totalEmp=0, totalJuros=0, totalFinal=0;
     let pagos=0, pendentes=0, atrasados=0;
@@ -204,7 +217,6 @@ function atualizarTabela(){
         if(c.dataVenc && new Date(c.dataVenc)<hoje && !c.pago) atrasado=true;
         let corLinha = c.pago ? '#c8f7c5' : (atrasado ? '#ffb3b3' : 'white');
 
-        // Filtro de busca e status
         if(busca && !(c.nome.toLowerCase().includes(busca) || c.cpf.toLowerCase().includes(busca))) return;
         if(filtro==='pendente' && (c.pago || atrasado)) return;
         if(filtro==='pago' && !c.pago) return;
@@ -243,4 +255,5 @@ function exportarPDF(){
 
 </body>
 </html>
+
 
