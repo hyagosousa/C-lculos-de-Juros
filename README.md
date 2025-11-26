@@ -5,16 +5,26 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Sistema de Empréstimos</title>
 <style>
-  body { font-family: Arial, sans-serif; padding: 20px; }
-  .campo { margin-bottom: 10px; }
-  .vermelho { color: red; font-weight: bold; }
-  .azul { color: blue; font-weight: bold; }
-  .verde { color: green; font-weight: bold; }
-  table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-  table, th, td { border: 1px solid #ccc; }
-  th, td { padding: 8px; text-align: left; }
-  .btn { padding: 8px 12px; margin: 5px 0; cursor: pointer; }
-  .alerta { background: red; color: #fff; padding: 3px 6px; border-radius: 4px; font-size: 12px; }
+    body { font-family: Arial, sans-serif; margin: 0; background: #f5f5f5; }
+    .container { max-width: 600px; margin: auto; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    label { font-weight: bold; margin-top: 10px; display: block; }
+    input { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; }
+    .resultado, .historico { background: #eee; padding: 15px; border-radius: 10px; margin-top: 20px; }
+    button { width: 100%; padding: 14px; background: #007bff; color: white; border: none; border-radius: 8px; margin-top: 15px; font-size: 18px; cursor: pointer; }
+    button:hover { background: #005fcc; }
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; display: block; overflow-x: auto; }
+    th, td { border: 1px solid #ccc; padding: 10px; text-align: center; font-size: 16px; white-space: nowrap; }
+    th { background: #ddd; }
+
+    /* MODO MOBILE */
+    @media (max-width: 600px) {
+        .container { width: 94%; padding: 15px; }
+        h2, h3 { text-align: center; font-size: 22px; }
+        input { padding: 14px; font-size: 18px; }
+        button { font-size: 20px; padding: 16px; }
+        .resultado, .historico { padding: 12px; }
+        td, th { padding: 12px; font-size: 18px; }
+    }
 </style>
 </head>
 <body>
@@ -167,6 +177,5 @@ if (localStorage.getItem("logado") === "true") {
 </script>
 </body>
 </html>
-
 
 
