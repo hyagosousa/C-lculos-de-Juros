@@ -96,11 +96,10 @@ function atualizarCalculo(){
     <input type="number" id="valor" step="0.01" oninput="atualizarCalculo()">
 
     <label>Porcentagem de Juros (%):</label>
-    <input type="number" id="juros" step="0.1" oninput="atualizarCalculo()"> (%):</label>
-    <input type="number" id="juros" step="0.1">
+    <input type="number" id="juros" step="0.1" oninput="atualizarCalculo()">
 
     <label>Data do Empréstimo:</label>
-    <input type="date" id="dataEmp">
+    <input type="date" id="dataEmp">>
 
     <label>Data de Vencimento:</label>
     <input type="date" id="dataVenc">
@@ -111,7 +110,7 @@ function atualizarCalculo(){
     <p><b>Total a Receber:</b> <span id="prevFinal">0.00</span></p>
 </div>
 
-    <button onclick="salvarCliente"()">Salvar Cliente</button>
+    <button onclick="salvarCliente()"()">Salvar Cliente</button>
 </div>
 
 <div class="container historico">
@@ -197,5 +196,6 @@ function atualizarTabela(){
 
 </body>
 </html>
+
 
 
