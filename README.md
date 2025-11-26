@@ -171,7 +171,7 @@ function excluirCliente(i){ clientes.splice(i,1); localStorage.setItem("clientes
 function marcarPago(i){ clientes[i].pago = true; localStorage.setItem("clientes", JSON.stringify(clientes)); atualizarTabela(); calcularTotais(); }
 function cobrar(telefone, valorFinal, dataVenc, nome){
     let valorFormatado = valorFinal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-    let msg = `Opa ${nome}, sua dívida de ${valorFormatado} vence em ${dataVenc}. Por favor, realize o pagamento. Obrigado!`;
+    let msg = `Opa ${nome}, sua dívida de ${valorFormatado} vence em ${dataVenc}. Por favor, realize o pagamento via PIX (chave: Hyagosousasous@gmail.com). Obrigado!`;
     window.open(`https://wa.me/55${telefone}?text=${encodeURIComponent(msg)}`, "_blank");
 }
 
