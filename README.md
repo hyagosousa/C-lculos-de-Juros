@@ -1,34 +1,27 @@
-
-
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sistema de Empréstimos</title>
+<title>Sistema de Empréstimos Avançado</title>
 <style>
     body { font-family: Arial, sans-serif; margin: 0; background: #f5f5f5; }
-    .container { max-width: 800px; margin: 20px auto; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    .container { max-width: 900px; margin: 20px auto; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
     h2, h3 { text-align: center; }
     label { font-weight: bold; margin-top: 10px; display: block; }
-    input { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; }
-    button { width: 100%; padding: 14px; background: #007bff; color: white; border: none; border-radius: 8px; margin-top: 15px; font-size: 18px; cursor: pointer; }
-    button:hover { background: #005fcc; }
-    .resultado { background: #eee; padding: 15px; border-radius: 10px; margin-top: 20px; }
-    .resultado p { margin: 5px 0; font-weight: bold; }
+    input, select { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; }
+    button { width: 100%; padding: 12px; border: none; border-radius: 8px; margin-top: 10px; font-size: 16px; cursor: pointer; }
+    button:hover { opacity: 0.9; }
+    .resultado, .dashboard { background: #eee; padding: 15px; border-radius: 10px; margin-top: 20px; }
+    .resultado p, .dashboard p { margin: 5px 0; font-weight: bold; }
     .valor-emp { color: red; font-weight: bold; }
     .valor-juros { color: blue; font-weight: bold; }
     .valor-total { color: green; font-weight: bold; }
-    .historico { margin-top: 20px; }
-    table { width: 100%; border-collapse: collapse; display: block; overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; display: block; overflow-x: auto; margin-top: 10px; }
     th, td { border: 1px solid #ccc; padding: 10px; text-align: center; white-space: nowrap; }
-    th { background: #ddd; }
-    @media(max-width: 600px){
-        input { font-size: 16px; padding: 12px; }
-        button { font-size: 16px; padding: 12px; }
-        td, th { font-size: 14px; padding: 8px; }
-    }
+    th { background: #ddd; cursor: pointer; }
+    .historico { margin-top: 20px; }
+    @media(max-width: 600px){ input, select { font-size: 14px; padding: 10px; } button { font-size: 14px; padding: 10px; } td, th { font-size: 12px; padding: 6px; } }
 </style>
 </head>
 <body>
@@ -56,7 +49,7 @@ if (!localStorage.getItem("logado")) {
 </script>
 
 <div class="container">
-    <h2>Sistema de Empréstimos</h2>
+    <h2>Sistema de Empréstimos Avançado</h2>
 
     <label>Nome do Cliente:</label>
     <input type="text" id="nome">
@@ -88,14 +81,31 @@ if (!localStorage.getItem("logado")) {
         <p>Total a Receber: <span id="prevFinal" class="valor-total">R$ 0,00</span></p>
     </div>
 
-    <button onclick="salvarCliente()">Salvar Cliente</button>
+    <button style="background:#28a745;color:white;" onclick="salvarCliente()">Salvar Cliente</button>
 </div>
 
-<div class="container resultado">
+<div class="container dashboard">
     <h3>Resumo Geral</h3>
+    <p>Total de Clientes: <span id="totalClientes">0</span></p>
+    <p>Clientes Pagos: <span id="totalPagos">0</span></p>
+    <p>Clientes Pendentes: <span id="totalPendentes">0</span></p>
+    <p>Clientes Atrasados: <span id="totalAtrasados">0</span></p>
     <p>Valor Total Emprestado: <span id="totalEmpGeral" class="valor-emp">R$ 0,00</span></p>
     <p>Total em Juros: <span id="totalJurosGeral" class="valor-juros">R$ 0,00</span></p>
     <p>Total a Receber: <span id="totalReceberGeral" class="valor-total">R$ 0,00</span></p>
+
+    <label>Buscar Cliente (Nome ou CPF):</label>
+    <input type="text" id="buscar" oninput="atualizarTabela()">
+
+    <label>Filtrar por Status:</label>
+    <select id="filtroStatus" onchange="atualizarTabela()">
+        <option value="todos">Todos</option>
+        <option value="pendente">Pendentes</option>
+        <option value="pago">Pagos</option>
+        <option value="atrasado">Atrasados</option>
+    </select>
+
+    <button style="background:#ffc107;color:black;" onclick="exportarPDF()">Exportar PDF</button>
 </div>
 
 <div class="container historico">
@@ -103,11 +113,11 @@ if (!localStorage.getItem("logado")) {
     <table id="tabelaClientes">
         <thead>
             <tr>
-                <th>Nome</th>
-                <th>Valor</th>
-                <th>Juros</th>
-                <th>Total</th>
-                <th>Vencimento</th>
+                <th onclick="ordenarTabela('nome')">Nome</th>
+                <th onclick="ordenarTabela('valor')">Valor</th>
+                <th onclick="ordenarTabela('valorJuros')">Juros</th>
+                <th onclick="ordenarTabela('valorFinal')">Total</th>
+                <th onclick="ordenarTabela('dataVenc')">Vencimento</th>
                 <th>Ações</th>
             </tr>
         </thead>
@@ -117,6 +127,7 @@ if (!localStorage.getItem("logado")) {
 
 <script>
 let clientes = JSON.parse(localStorage.getItem("clientes") || "[]");
+let ordemAtual = '';
 atualizarTabela();
 calcularTotais();
 
@@ -135,14 +146,19 @@ function atualizarCalculo(){
 }
 
 function salvarCliente(){
-    let nome = document.getElementById("nome").value;
-    let cpf = document.getElementById("cpf").value;
-    let telefone = document.getElementById("telefone").value;
-    let endereco = document.getElementById("endereco").value;
+    let nome = document.getElementById("nome").value.trim();
+    let cpf = document.getElementById("cpf").value.trim();
+    let telefone = document.getElementById("telefone").value.trim();
+    let endereco = document.getElementById("endereco").value.trim();
     let valor = parseFloat(document.getElementById("valor").value) || 0;
     let juros = parseFloat(document.getElementById("juros").value) || 0;
     let dataEmp = document.getElementById("dataEmp").value;
     let dataVenc = document.getElementById("dataVenc").value;
+
+    if(!nome || !cpf || !telefone || valor <= 0 || !dataEmp || !dataVenc){
+        alert('Preencha todos os campos corretamente!');
+        return;
+    }
 
     let valorJuros = (valor * juros)/100;
     let valorFinal = valor + valorJuros;
@@ -155,50 +171,45 @@ function salvarCliente(){
     alert("Cliente salvo com sucesso!");
 }
 
-function excluirCliente(i){
-    clientes.splice(i,1);
-    localStorage.setItem("clientes", JSON.stringify(clientes));
-    atualizarTabela();
-    calcularTotais();
-}
-
-function marcarPago(i){
-    clientes[i].pago = true;
-    localStorage.setItem("clientes", JSON.stringify(clientes));
-    atualizarTabela();
-    calcularTotais();
-}
-
-function cobrar(telefone){
-    let msg = encodeURIComponent("Opa, hoje vence aquela questão");
-    window.open(`https://wa.me/55${telefone}?text=${msg}`, "_blank");
-}
+function excluirCliente(i){ clientes.splice(i,1); localStorage.setItem("clientes", JSON.stringify(clientes)); atualizarTabela(); calcularTotais(); }
+function marcarPago(i){ clientes[i].pago = true; localStorage.setItem("clientes", JSON.stringify(clientes)); atualizarTabela(); calcularTotais(); }
+function cobrar(telefone){ let msg = encodeURIComponent("Opa, hoje vence aquela questão"); window.open(`https://wa.me/55${telefone}?text=${msg}`, "_blank"); }
 
 function calcularTotais(){
     let totalEmp=0, totalJuros=0, totalFinal=0;
-    clientes.forEach(c => {
-        if(!c.pago){
-            totalEmp+=c.valor;
-            totalJuros+=c.valorJuros;
-            totalFinal+=c.valorFinal;
-        }
+    let pagos=0, pendentes=0, atrasados=0;
+    let hoje = new Date();
+    clientes.forEach(c=>{
+        if(c.pago) pagos++;
+        else { pendentes++; if(c.dataVenc && new Date(c.dataVenc)<hoje) atrasados++; totalEmp+=c.valor; totalJuros+=c.valorJuros; totalFinal+=c.valorFinal; }
     });
     document.getElementById("totalEmpGeral").innerText = formatarMoeda(totalEmp);
     document.getElementById("totalJurosGeral").innerText = formatarMoeda(totalJuros);
     document.getElementById("totalReceberGeral").innerText = formatarMoeda(totalFinal);
+    document.getElementById("totalClientes").innerText = clientes.length;
+    document.getElementById("totalPagos").innerText = pagos;
+    document.getElementById("totalPendentes").innerText = pendentes;
+    document.getElementById("totalAtrasados").innerText = atrasados;
 }
 
 function atualizarTabela(){
     let tbody=document.querySelector("#tabelaClientes tbody");
     tbody.innerHTML="";
+    let busca = document.getElementById('buscar').value.toLowerCase();
+    let filtro = document.getElementById('filtroStatus').value;
+
     clientes.forEach((c,i)=>{
         let atrasado=false;
-        if(c.dataVenc){
-            let hoje=new Date();
-            let venc=new Date(c.dataVenc);
-            if(venc<=hoje && !c.pago) atrasado=true;
-        }
+        let hoje=new Date();
+        if(c.dataVenc && new Date(c.dataVenc)<hoje && !c.pago) atrasado=true;
         let corLinha = c.pago ? '#c8f7c5' : (atrasado ? '#ffb3b3' : 'white');
+
+        // Filtro de busca e status
+        if(busca && !(c.nome.toLowerCase().includes(busca) || c.cpf.toLowerCase().includes(busca))) return;
+        if(filtro==='pendente' && (c.pago || atrasado)) return;
+        if(filtro==='pago' && !c.pago) return;
+        if(filtro==='atrasado' && !atrasado) return;
+
         tbody.innerHTML += `
             <tr style="background:${corLinha};">
                 <td>${c.nome}</td>
@@ -207,14 +218,29 @@ function atualizarTabela(){
                 <td class="valor-total">${formatarMoeda(c.valorFinal)}</td>
                 <td>${c.dataVenc||'-'}</td>
                 <td>
-                    <button onclick="cobrar('${c.telefone}')">Cobrar</button>
-                    <button onclick="excluirCliente(${i})" style="background:red; margin-top:5px;">Excluir</button>
-                    ${!c.pago ? `<button onclick="marcarPago(${i})" style="background:green; margin-top:5px;">Pago</button>` : ''}
+                    <button onclick="cobrar('${c.telefone}')">💰 Cobrar</button>
+                    <button onclick="excluirCliente(${i})" style="background:red;color:white; margin-top:5px;">❌ Excluir</button>
+                    ${!c.pago ? `<button onclick="marcarPago(${i})" style="background:green;color:white;margin-top:5px;">✅ Pago</button>` : ''}
                 </td>
             </tr>`;
     });
+}
+
+function ordenarTabela(campo){
+    if(ordemAtual===campo){ clientes.reverse(); }
+    else { clientes.sort((a,b)=>{ if(a[campo]<b[campo]) return -1; if(a[campo]>b[campo]) return 1; return 0; }); ordemAtual=campo; }
+    atualizarTabela();
+}
+
+function exportarPDF(){
+    let conteudo = document.querySelector('.historico').innerHTML;
+    let win = window.open('', '', 'width=900,height=700');
+    win.document.write('<html><head><title>Relatório de Clientes</title></head><body>'+conteudo+'</body></html>');
+    win.document.close();
+    win.print();
 }
 </script>
 
 </body>
 </html>
+
