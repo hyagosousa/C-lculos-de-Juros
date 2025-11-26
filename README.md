@@ -61,6 +61,8 @@ if (!localStorage.getItem("logado")) {
         }
     };
 }
+
+
 function atualizarCalculo(){
     let valor = parseFloat(document.getElementById('valor').value) || 0;
     let juros = parseFloat(document.getElementById('juros').value) || 0;
@@ -195,4 +197,5 @@ function atualizarTabela(){
 
 </body>
 </html>
+
 
