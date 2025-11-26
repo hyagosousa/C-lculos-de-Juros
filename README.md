@@ -6,12 +6,15 @@
 <title>Controle de Empréstimos</title>
 <style>
     body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
-    .container { max-width: 500px; margin: auto; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    .container { max-width: 600px; margin: auto; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
     label { font-weight: bold; margin-top: 10px; display: block; }
     input { width: 100%; padding: 10px; margin-top: 5px; border-radius: 5px; border: 1px solid #ccc; }
-    .resultado { background: #eee; padding: 10px; border-radius: 5px; margin-top: 10px; }
+    .resultado, .historico { background: #eee; padding: 10px; border-radius: 5px; margin-top: 15px; }
     button { width: 100%; padding: 12px; background: #007bff; color: white; border: none; border-radius: 5px; margin-top: 15px; font-size: 16px; cursor: pointer; }
     button:hover { background: #005fcc; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+    th { background: #ddd; }
 </style>
 </head>
 <body>
@@ -34,6 +37,7 @@
 <input type="date" id="dataVenc">
 
 <button onclick="calcular()">Calcular</button>
+<button onclick="salvar()" style="background: green;">Salvar Cliente</button>
 
 <div class="resultado">
 <p><strong>Valor Emprestado:</strong> R$ <span id="rValor">0,00</span></p>
@@ -42,6 +46,26 @@
 <p><strong>Cliente:</strong> <span id="rNome">-</span></p>
 <p><strong>Empréstimo:</strong> <span id="rDataEmp">-</span></p>
 <p><strong>Vencimento:</strong> <span id="rDataVenc">-</span></p>
+</div>
+
+<div class="historico">
+<h3>Histórico de Empréstimos</h3>
+
+<label>Selecionar Cliente:</label>
+<select id="menuClientes" onchange="abrirCliente()" style="width:100%; padding:10px; margin-top:5px; border-radius:5px; border:1px solid #ccc;"></select>
+<table>
+<thead>
+<tr>
+<th>Cliente</th>
+<th>Emprestado</th>
+<th>Juros</th>
+<th>Total</th>
+<th>Vencimento</th>
+</tr>
+</thead>
+<tbody id="listaClientes"></tbody>
+</table>
+<button onclick="enviarCobranca()" style="background:#c40000;">Enviar Cobrança no WhatsApp</button>
 </div>
 </div>
 
@@ -64,11 +88,100 @@ function calcular() {
     document.getElementById("rValor").innerText = valor.toFixed(2);
     document.getElementById("rJuros").innerText = valorJuros.toFixed(2);
     document.getElementById("rTotal").innerText = total.toFixed(2);
-
     document.getElementById("rNome").innerText = nome;
     document.getElementById("rDataEmp").innerText = dataEmp;
     document.getElementById("rDataVenc").innerText = dataVenc;
 }
+
+function salvar() {
+    let nome = document.getElementById("nome").value;
+    let valor = parseFloat(document.getElementById("valor").value);
+    let juros = parseFloat(document.getElementById("juros").value);
+    let dataEmp = document.getElementById("dataEmp").value;
+    let dataVenc = document.getElementById("dataVenc").value;
+
+    if (!nome || isNaN(valor) || isNaN(juros)) {
+        alert("Preencha tudo antes de salvar!");
+        return;
+    }
+
+    let valorJuros = valor * (juros / 100);
+    let total = valor + valorJuros;
+
+    let cliente = {
+        nome, valor, valorJuros, total, dataVenc
+    };
+
+    let lista = JSON.parse(localStorage.getItem("emprestimos") || "[]");
+    lista.push(cliente);
+    localStorage.setItem("emprestimos", JSON.stringify(lista));
+
+    carregarLista();
+
+function enviarCobranca() {
+    let nome = document.getElementById("nome").value;
+    let dataVenc = document.getElementById("dataVenc").value;
+
+    if (!nome || !dataVenc) {
+        alert("Selecione um cliente para enviar a cobrança.");
+        return;
+    }
+
+    let msg = `Opa, ${nome}! Hoje vence aquela questão do empréstimo. Poderia verificar pra mim?`;
+    let url = `https://wa.me/?text=${encodeURIComponent(msg)}`;
+    window.open(url, "_blank");
+}
+
+function abrirCliente() {
+    let lista = JSON.parse(localStorage.getItem("emprestimos") || "[]");
+    let index = document.getElementById("menuClientes").value;
+    if (index === "") return;
+
+    let c = lista[index];
+
+    document.getElementById("nome").value = c.nome;
+    document.getElementById("valor").value = c.valor;
+    document.getElementById("juros").value = (c.valorJuros / c.valor * 100).toFixed(2);
+    document.getElementById("dataVenc").value = c.dataVenc;
+}
+}
+
+function carregarLista() {
+    let lista = JSON.parse(localStorage.getItem("emprestimos") || "[]");
+    let tabela = document.getElementById("listaClientes");
+    tabela.innerHTML = "";
+
+    lista.forEach((c, i) => {
+        // verificar vencimento
+        let hoje = new Date().toISOString().split('T')[0];
+        let alerta = c.dataVenc <= hoje ? "style='background:#ffb3b3;'" : "";
+
+        tabela.innerHTML += `<tr ${alerta}>
+            <td>${c.nome}</td>
+            <td>R$ ${c.valor.toFixed(2)}</td>
+            <td>R$ ${c.valorJuros.toFixed(2)}</td>
+            <td>R$ ${c.total.toFixed(2)}</td>
+            <td>${c.dataVenc}</td>
+        </tr>`;
+    });
+
+    // carregar menu
+    let menu = document.getElementById("menuClientes");
+    menu.innerHTML = "<option value=''>Escolha um cliente</option>";
+    lista.forEach((c, i) => {
+        menu.innerHTML += `<option value='${i}'>${c.nome}</option>`;
+    });(c => {
+        tabela.innerHTML += `<tr>
+            <td>${c.nome}</td>
+            <td>R$ ${c.valor.toFixed(2)}</td>
+            <td>R$ ${c.valorJuros.toFixed(2)}</td>
+            <td>R$ ${c.total.toFixed(2)}</td>
+            <td>${c.dataVenc}</td>
+        </tr>`;
+    });
+}
+
+carregarLista();
 </script>
 </body>
 </html>
