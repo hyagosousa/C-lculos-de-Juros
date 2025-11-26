@@ -1,3 +1,6 @@
+
+
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -14,13 +17,13 @@
     button:hover { background: #005fcc; }
     .resultado { background: #eee; padding: 15px; border-radius: 10px; margin-top: 20px; }
     .resultado p { margin: 5px 0; font-weight: bold; }
+    .valor-emp { color: red; font-weight: bold; }
+    .valor-juros { color: blue; font-weight: bold; }
+    .valor-total { color: green; font-weight: bold; }
     .historico { margin-top: 20px; }
     table { width: 100%; border-collapse: collapse; display: block; overflow-x: auto; }
     th, td { border: 1px solid #ccc; padding: 10px; text-align: center; white-space: nowrap; }
     th { background: #ddd; }
-    .valor-emp { color: red; font-weight: bold; }
-    .valor-juros { color: blue; font-weight: bold; }
-    .valor-total { color: green; font-weight: bold; }
     @media(max-width: 600px){
         input { font-size: 16px; padding: 12px; }
         button { font-size: 16px; padding: 12px; }
@@ -80,9 +83,9 @@ if (!localStorage.getItem("logado")) {
     <input type="date" id="dataVenc">
 
     <div class="resultado">
-        <p>Total Emprestado: R$ <span id="prevValor">0.00</span></p>
-        <p>Juros (R$): <span id="prevJuros">0.00</span></p>
-        <p>Total a Receber: R$ <span id="prevFinal">0.00</span></p>
+        <p>Valor: <span id="prevValor" class="valor-emp">R$ 0,00</span></p>
+        <p>Juros: <span id="prevJuros" class="valor-juros">R$ 0,00</span></p>
+        <p>Total a Receber: <span id="prevFinal" class="valor-total">R$ 0,00</span></p>
     </div>
 
     <button onclick="salvarCliente()">Salvar Cliente</button>
@@ -90,9 +93,9 @@ if (!localStorage.getItem("logado")) {
 
 <div class="container resultado">
     <h3>Resumo Geral</h3>
-    <p>Total Emprestado Geral: R$ <span id="totalEmpGeral">0.00</span></p>
-    <p>Total em Juros Geral: R$ <span id="totalJurosGeral">0.00</span></p>
-    <p>Total a Receber Geral: R$ <span id="totalReceberGeral">0.00</span></p>
+    <p>Valor Total Emprestado: <span id="totalEmpGeral" class="valor-emp">R$ 0,00</span></p>
+    <p>Total em Juros: <span id="totalJurosGeral" class="valor-juros">R$ 0,00</span></p>
+    <p>Total a Receber: <span id="totalReceberGeral" class="valor-total">R$ 0,00</span></p>
 </div>
 
 <div class="container historico">
@@ -117,14 +120,18 @@ let clientes = JSON.parse(localStorage.getItem("clientes") || "[]");
 atualizarTabela();
 calcularTotais();
 
+function formatarMoeda(valor){
+    return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
 function atualizarCalculo(){
     let valor = parseFloat(document.getElementById('valor').value) || 0;
     let juros = parseFloat(document.getElementById('juros').value) || 0;
     let vJuros = (valor * juros)/100;
     let vFinal = valor + vJuros;
-    document.getElementById('prevValor').innerText = valor.toFixed(2);
-    document.getElementById('prevJuros').innerText = vJuros.toFixed(2);
-    document.getElementById('prevFinal').innerText = vFinal.toFixed(2);
+    document.getElementById('prevValor').innerText = formatarMoeda(valor);
+    document.getElementById('prevJuros').innerText = formatarMoeda(vJuros);
+    document.getElementById('prevFinal').innerText = formatarMoeda(vFinal);
 }
 
 function salvarCliente(){
@@ -140,7 +147,7 @@ function salvarCliente(){
     let valorJuros = (valor * juros)/100;
     let valorFinal = valor + valorJuros;
 
-    clientes.push({nome, cpf, telefone, endereco, valor, juros, valorJuros, valorFinal, dataEmp, dataVenc});
+    clientes.push({nome, cpf, telefone, endereco, valor, juros, valorJuros, valorFinal, dataEmp, dataVenc, pago:false});
     localStorage.setItem("clientes", JSON.stringify(clientes));
 
     atualizarTabela();
@@ -155,6 +162,13 @@ function excluirCliente(i){
     calcularTotais();
 }
 
+function marcarPago(i){
+    clientes[i].pago = true;
+    localStorage.setItem("clientes", JSON.stringify(clientes));
+    atualizarTabela();
+    calcularTotais();
+}
+
 function cobrar(telefone){
     let msg = encodeURIComponent("Opa, hoje vence aquela questão");
     window.open(`https://wa.me/55${telefone}?text=${msg}`, "_blank");
@@ -162,10 +176,16 @@ function cobrar(telefone){
 
 function calcularTotais(){
     let totalEmp=0, totalJuros=0, totalFinal=0;
-    clientes.forEach(c => { totalEmp+=c.valor; totalJuros+=c.valorJuros; totalFinal+=c.valorFinal; });
-    document.getElementById("totalEmpGeral").innerText = totalEmp.toFixed(2);
-    document.getElementById("totalJurosGeral").innerText = totalJuros.toFixed(2);
-    document.getElementById("totalReceberGeral").innerText = totalFinal.toFixed(2);
+    clientes.forEach(c => {
+        if(!c.pago){
+            totalEmp+=c.valor;
+            totalJuros+=c.valorJuros;
+            totalFinal+=c.valorFinal;
+        }
+    });
+    document.getElementById("totalEmpGeral").innerText = formatarMoeda(totalEmp);
+    document.getElementById("totalJurosGeral").innerText = formatarMoeda(totalJuros);
+    document.getElementById("totalReceberGeral").innerText = formatarMoeda(totalFinal);
 }
 
 function atualizarTabela(){
@@ -176,21 +196,25 @@ function atualizarTabela(){
         if(c.dataVenc){
             let hoje=new Date();
             let venc=new Date(c.dataVenc);
-            if(venc<=hoje) atrasado=true;
+            if(venc<=hoje && !c.pago) atrasado=true;
         }
+        let corLinha = c.pago ? '#c8f7c5' : (atrasado ? '#ffb3b3' : 'white');
         tbody.innerHTML += `
-            <tr style="background:${atrasado?'#ffb3b3':'white'};">
+            <tr style="background:${corLinha};">
                 <td>${c.nome}</td>
-                <td class="valor-emp">R$ ${c.valor.toFixed(2)}</td>
-                <td class="valor-juros">R$ ${c.valorJuros.toFixed(2)}</td>
-                <td class="valor-total">R$ ${c.valorFinal.toFixed(2)}</td>
+                <td class="valor-emp">${formatarMoeda(c.valor)}</td>
+                <td class="valor-juros">${formatarMoeda(c.valorJuros)}</td>
+                <td class="valor-total">${formatarMoeda(c.valorFinal)}</td>
                 <td>${c.dataVenc||'-'}</td>
                 <td>
-
-
+                    <button onclick="cobrar('${c.telefone}')">Cobrar</button>
+                    <button onclick="excluirCliente(${i})" style="background:red; margin-top:5px;">Excluir</button>
+                    ${!c.pago ? `<button onclick="marcarPago(${i})" style="background:green; margin-top:5px;">Pago</button>` : ''}
+                </td>
+            </tr>`;
+    });
+}
+</script>
 
 </body>
 </html>
-
-
-
