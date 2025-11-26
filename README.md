@@ -1,45 +1,37 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta charset="UTF-8" />
 <title>Sistema de Empréstimos</title>
 <style>
     body { font-family: Arial, sans-serif; margin: 0; background: #f5f5f5; }
-    .container { max-width: 600px; margin: auto; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    .container { max-width: 800px; margin: 20px auto; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    h2, h3 { text-align: center; }
     label { font-weight: bold; margin-top: 10px; display: block; }
     input { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; }
-    .resultado, .historico { background: #eee; padding: 15px; border-radius: 10px; margin-top: 20px; }
     button { width: 100%; padding: 14px; background: #007bff; color: white; border: none; border-radius: 8px; margin-top: 15px; font-size: 18px; cursor: pointer; }
     button:hover { background: #005fcc; }
-    table { width: 100%; border-collapse: collapse; margin-top: 15px; display: block; overflow-x: auto; }
-    th, td { border: 1px solid #ccc; padding: 10px; text-align: center; font-size: 16px; white-space: nowrap; }
+    .resultado { background: #eee; padding: 15px; border-radius: 10px; margin-top: 20px; }
+    .resultado p { margin: 5px 0; font-weight: bold; }
+    .historico { margin-top: 20px; }
+    table { width: 100%; border-collapse: collapse; display: block; overflow-x: auto; }
+    th, td { border: 1px solid #ccc; padding: 10px; text-align: center; white-space: nowrap; }
     th { background: #ddd; }
     .valor-emp { color: red; font-weight: bold; }
     .valor-juros { color: blue; font-weight: bold; }
     .valor-total { color: green; font-weight: bold; }
-
-    @media (max-width: 600px) {
-    body { padding: 0; margin: 0; }
-    .container { width: 95%; padding: 10px; margin-top: 10px; }
-    h2, h3 { text-align: center; font-size: 22px; }
-    input { padding: 14px; font-size: 18px; }
-    button { font-size: 20px; padding: 16px; }
-    table { font-size: 16px; }
-    td, th { padding: 10px; font-size: 16px; }
-}
-        h2, h3 { text-align: center; font-size: 22px; }
-        input { padding: 14px; font-size: 18px; }
-        button { font-size: 20px; padding: 16px; }
-        .resultado, .historico { padding: 12px; }
-        td, th { padding: 12px; font-size: 18px; }
+    @media(max-width: 600px){
+        input { font-size: 16px; padding: 12px; }
+        button { font-size: 16px; padding: 12px; }
+        td, th { font-size: 14px; padding: 8px; }
     }
 </style>
 </head>
 <body>
+
 <script>
-// LOGIN SIMPLES QUE SEMPRE APARECE
-// LOGIN SIMPLES QUE SEMPRE APARECE
+// LOGIN SIMPLES
 if (!localStorage.getItem("logado")) {
     document.body.innerHTML = `
     <div style='max-width:400px;margin:auto;margin-top:80px;background:white;padding:25px;border-radius:10px;box-shadow:0 0 10px #0003;'>
@@ -52,29 +44,12 @@ if (!localStorage.getItem("logado")) {
     document.getElementById("btnEntrar").onclick = () => {
         let user = document.getElementById("loginUser").value.trim();
         let pass = document.getElementById("loginPass").value.trim();
-
         if (user === "H07y0321" && pass === "Helo2020@") {
             localStorage.setItem("logado", "true");
             location.reload();
-        } else {
-            alert("Login ou senha incorretos!");
-        }
+        } else { alert("Login ou senha incorretos!"); }
     };
 }
-
-
-function atualizarCalculo(){
-    let valor = parseFloat(document.getElementById('valor').value) || 0;
-    let juros = parseFloat(document.getElementById('juros').value) || 0;
-
-    let vJuros = (valor * juros) / 100;
-    let vFinal = valor + vJuros;
-
-    document.getElementById('prevValor').innerText = valor.toFixed(2);
-    document.getElementById('prevJuros').innerText = vJuros.toFixed(2);
-    document.getElementById('prevFinal').innerText = vFinal.toFixed(2);
-}
-
 </script>
 
 <div class="container">
@@ -105,24 +80,23 @@ function atualizarCalculo(){
     <input type="date" id="dataVenc">
 
     <div class="resultado">
-    <p><b>Total Emprestado:</b> R$ <span id="prevValor">0.00</span></p>
-    <p><b>Juros (R$):</b> <span id="prevJuros">0.00</span></p>
-    <p><b>Total a Receber:</b> <span id="prevFinal">0.00</span></p>
-</div>
+        <p>Total Emprestado: R$ <span id="prevValor">0.00</span></p>
+        <p>Juros (R$): <span id="prevJuros">0.00</span></p>
+        <p>Total a Receber: R$ <span id="prevFinal">0.00</span></p>
+    </div>
 
     <button onclick="salvarCliente()">Salvar Cliente</button>
 </div>
 
 <div class="container resultado">
     <h3>Resumo Geral</h3>
-    <p><b>Total Emprestado:</b> R$ <span id="totalEmprestado">0.00</span></p>
-    <p><b>Total em Juros:</b> R$ <span id="totalJuros">0.00</span></p>
-    <p><b>Total a Receber:</b> R$ <span id="totalReceber">0.00</span></p>
+    <p>Total Emprestado Geral: R$ <span id="totalEmpGeral">0.00</span></p>
+    <p>Total em Juros Geral: R$ <span id="totalJurosGeral">0.00</span></p>
+    <p>Total a Receber Geral: R$ <span id="totalReceberGeral">0.00</span></p>
 </div>
 
 <div class="container historico">
     <h3>Clientes Registrados</h3>
-
     <table id="tabelaClientes">
         <thead>
             <tr>
@@ -136,24 +110,22 @@ function atualizarCalculo(){
         </thead>
         <tbody></tbody>
     </table>
-
-<div class="resultado">
-    <p><b>Total Emprestado Geral:</b> R$ <span id="totalEmpGeral">0.00</span></p>
-    <p><b>Total em Juros Geral:</b> R$ <span id="totalJurosGeral">0.00</span></p>
-    <p><b>Total a Receber Geral:</b> R$ <span id="totalReceberGeral">0.00</span></p>
-</div>
-
-<div class="resultado">
-    <p><b>Total Emprestado Geral:</b> R$ <span id="totalEmprestado">0.00</span></p>
-    <p><b>Total de Juros Geral:</b> R$ <span id="totalJuros">0.00</span></p>
-    <p><b>Total a Receber Geral:</b> R$ <span id="totalReceber">0.00</span></p>
-</div>
 </div>
 
 <script>
 let clientes = JSON.parse(localStorage.getItem("clientes") || "[]");
 atualizarTabela();
 calcularTotais();
+
+function atualizarCalculo(){
+    let valor = parseFloat(document.getElementById('valor').value) || 0;
+    let juros = parseFloat(document.getElementById('juros').value) || 0;
+    let vJuros = (valor * juros)/100;
+    let vFinal = valor + vJuros;
+    document.getElementById('prevValor').innerText = valor.toFixed(2);
+    document.getElementById('prevJuros').innerText = vJuros.toFixed(2);
+    document.getElementById('prevFinal').innerText = vFinal.toFixed(2);
+}
 
 function salvarCliente(){
     let nome = document.getElementById("nome").value;
@@ -165,20 +137,22 @@ function salvarCliente(){
     let dataEmp = document.getElementById("dataEmp").value;
     let dataVenc = document.getElementById("dataVenc").value;
 
-    let valorJuros = (valor * juros) / 100;
+    let valorJuros = (valor * juros)/100;
     let valorFinal = valor + valorJuros;
 
-    clientes.push({ nome, cpf, telefone, endereco, valor, juros, valorJuros, valorFinal, dataEmp, dataVenc });
+    clientes.push({nome, cpf, telefone, endereco, valor, juros, valorJuros, valorFinal, dataEmp, dataVenc});
     localStorage.setItem("clientes", JSON.stringify(clientes));
 
     atualizarTabela();
+    calcularTotais();
     alert("Cliente salvo com sucesso!");
 }
 
 function excluirCliente(i){
-    clientes.splice(i, 1);
+    clientes.splice(i,1);
     localStorage.setItem("clientes", JSON.stringify(clientes));
     atualizarTabela();
+    calcularTotais();
 }
 
 function cobrar(telefone){
@@ -187,51 +161,32 @@ function cobrar(telefone){
 }
 
 function calcularTotais(){
-    let totalEmp = 0;
-    let totalJuros = 0;
-    let totalFinal = 0;
-
-    clientes.forEach(c => {
-        totalEmp += c.valor;
-        totalJuros += c.valorJuros;
-        totalFinal += c.valorFinal;
-    });
-
+    let totalEmp=0, totalJuros=0, totalFinal=0;
+    clientes.forEach(c => { totalEmp+=c.valor; totalJuros+=c.valorJuros; totalFinal+=c.valorFinal; });
     document.getElementById("totalEmpGeral").innerText = totalEmp.toFixed(2);
     document.getElementById("totalJurosGeral").innerText = totalJuros.toFixed(2);
     document.getElementById("totalReceberGeral").innerText = totalFinal.toFixed(2);
 }
 
 function atualizarTabela(){
-    let tbody = document.querySelector("#tabelaClientes tbody");
-    tbody.innerHTML = "";
-
-    clientes.forEach((c, i) => {
-        let atrasado = false;
+    let tbody=document.querySelector("#tabelaClientes tbody");
+    tbody.innerHTML="";
+    clientes.forEach((c,i)=>{
+        let atrasado=false;
         if(c.dataVenc){
-            let hoje = new Date();
-            let venc = new Date(c.dataVenc);
-            if(venc <= hoje) atrasado = true;
+            let hoje=new Date();
+            let venc=new Date(c.dataVenc);
+            if(venc<=hoje) atrasado=true;
         }
-
         tbody.innerHTML += `
-            <tr style="background:${atrasado ? '#ffb3b3' : 'white'};">
+            <tr style="background:${atrasado?'#ffb3b3':'white'};">
                 <td>${c.nome}</td>
                 <td class="valor-emp">R$ ${c.valor.toFixed(2)}</td>
                 <td class="valor-juros">R$ ${c.valorJuros.toFixed(2)}</td>
                 <td class="valor-total">R$ ${c.valorFinal.toFixed(2)}</td>
-                <td>${c.dataVenc || '-'}</td>
+                <td>${c.dataVenc||'-'}</td>
                 <td>
-                    <button onclick="cobrar('${c.telefone}')">Cobrar</button>
-                    <button onclick="excluirCliente(${i})" style="background:red; margin-top:5px;">Excluir</button>
-                </td>
-            </tr>`;
-    });
-}
-</script>
 
-</body>
-</html>
 
 
 </body>
