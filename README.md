@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta charset="UTF-8" />
 <title>Sistema de Empréstimos</title>
 <style>
@@ -19,7 +20,14 @@
     .valor-total { color: green; font-weight: bold; }
 
     @media (max-width: 600px) {
-        .container { width: 94%; padding: 15px; }
+    body { padding: 0; margin: 0; }
+    .container { width: 95%; padding: 10px; margin-top: 10px; }
+    h2, h3 { text-align: center; font-size: 22px; }
+    input { padding: 14px; font-size: 18px; }
+    button { font-size: 20px; padding: 16px; }
+    table { font-size: 16px; }
+    td, th { padding: 10px; font-size: 16px; }
+}
         h2, h3 { text-align: center; font-size: 22px; }
         input { padding: 14px; font-size: 18px; }
         button { font-size: 20px; padding: 16px; }
@@ -53,6 +61,18 @@ if (!localStorage.getItem("logado")) {
         }
     };
 }
+function atualizarCalculo(){
+    let valor = parseFloat(document.getElementById('valor').value) || 0;
+    let juros = parseFloat(document.getElementById('juros').value) || 0;
+
+    let vJuros = (valor * juros) / 100;
+    let vFinal = valor + vJuros;
+
+    document.getElementById('prevValor').innerText = valor.toFixed(2);
+    document.getElementById('prevJuros').innerText = vJuros.toFixed(2);
+    document.getElementById('prevFinal').innerText = vFinal.toFixed(2);
+}
+
 </script>
 
 <div class="container">
@@ -71,9 +91,10 @@ if (!localStorage.getItem("logado")) {
     <input type="text" id="endereco">
 
     <label>Valor Emprestado:</label>
-    <input type="number" id="valor" step="0.01">
+    <input type="number" id="valor" step="0.01" oninput="atualizarCalculo()">
 
     <label>Porcentagem de Juros (%):</label>
+    <input type="number" id="juros" step="0.1" oninput="atualizarCalculo()"> (%):</label>
     <input type="number" id="juros" step="0.1">
 
     <label>Data do Empréstimo:</label>
@@ -82,7 +103,13 @@ if (!localStorage.getItem("logado")) {
     <label>Data de Vencimento:</label>
     <input type="date" id="dataVenc">
 
-    <button onclick="salvarCliente()">Salvar Cliente</button>
+    <div class="resultado">
+    <p><b>Total Emprestado:</b> R$ <span id="prevValor">0.00</span></p>
+    <p><b>Juros (R$):</b> <span id="prevJuros">0.00</span></p>
+    <p><b>Total a Receber:</b> <span id="prevFinal">0.00</span></p>
+</div>
+
+    <button onclick="salvarCliente"()">Salvar Cliente</button>
 </div>
 
 <div class="container historico">
