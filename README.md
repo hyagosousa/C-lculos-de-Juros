@@ -21,13 +21,21 @@
     th, td { border: 1px solid #ccc; padding: 10px; text-align: center; white-space: nowrap; }
     th { background: #ddd; cursor: pointer; }
     .historico { margin-top: 20px; }
+
+    /* Piscar para clientes atrasados */
+    .piscar { animation: piscarAnim 1s infinite; }
+    @keyframes piscarAnim {
+        0% { background-color: #ffb3b3; }
+        50% { background-color: #fff; }
+        100% { background-color: #ffb3b3; }
+    }
+
     @media(max-width: 600px){ input, select { font-size: 14px; padding: 10px; } button { font-size: 14px; padding: 10px; } td, th { font-size: 12px; padding: 6px; } }
 </style>
 </head>
 <body>
 
 <script>
-// LOGIN SIMPLES
 if (!localStorage.getItem("logado")) {
     document.body.innerHTML = `
     <div style='max-width:400px;margin:auto;margin-top:80px;background:white;padding:25px;border-radius:10px;box-shadow:0 0 10px #0003;'>
@@ -132,10 +140,7 @@ let ordemAtual = '';
 atualizarTabela();
 calcularTotais();
 
-function formatarMoeda(valor){
-    return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-}
-
+function formatarMoeda(valor){ return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
 function atualizarCalculo(){
     let valor = parseFloat(document.getElementById('valor').value) || 0;
     let juros = parseFloat(document.getElementById('juros').value) || 0;
@@ -155,27 +160,17 @@ function salvarCliente(){
     let juros = parseFloat(document.getElementById("juros").value) || 0;
     let dataEmp = document.getElementById("dataEmp").value;
     let dataVenc = document.getElementById("dataVenc").value;
-
-    if(!nome || !cpf || !telefone || valor <= 0 || !dataEmp || !dataVenc){
-        alert('Preencha todos os campos corretamente!');
-        return;
-    }
-
+    if(!nome || !cpf || !telefone || valor <= 0 || !dataEmp || !dataVenc){ alert('Preencha todos os campos corretamente!'); return; }
     let valorJuros = (valor * juros)/100;
     let valorFinal = valor + valorJuros;
-
     clientes.push({nome, cpf, telefone, endereco, valor, juros, valorJuros, valorFinal, dataEmp, dataVenc, pago:false});
     localStorage.setItem("clientes", JSON.stringify(clientes));
-
-    atualizarTabela();
-    calcularTotais();
-    alert("Cliente salvo com sucesso!");
+    atualizarTabela(); calcularTotais(); alert("Cliente salvo com sucesso!");
 }
 
 function excluirCliente(i){ clientes.splice(i,1); localStorage.setItem("clientes", JSON.stringify(clientes)); atualizarTabela(); calcularTotais(); }
 function marcarPago(i){ clientes[i].pago = true; localStorage.setItem("clientes", JSON.stringify(clientes)); atualizarTabela(); calcularTotais(); }
 function cobrar(telefone){ let msg = encodeURIComponent("Opa, hoje vence aquela questão"); window.open(`https://wa.me/55${telefone}?text=${msg}`, "_blank"); }
-
 function enviarAlertaAtrasados(){
     let hoje = new Date();
     let atrasados = clientes.filter(c => !c.pago && c.dataVenc && new Date(c.dataVenc) < hoje);
@@ -210,31 +205,31 @@ function atualizarTabela(){
     tbody.innerHTML="";
     let busca = document.getElementById('buscar').value.toLowerCase();
     let filtro = document.getElementById('filtroStatus').value;
-
     clientes.forEach((c,i)=>{
         let atrasado=false;
         let hoje=new Date();
         if(c.dataVenc && new Date(c.dataVenc)<hoje && !c.pago) atrasado=true;
         let corLinha = c.pago ? '#c8f7c5' : (atrasado ? '#ffb3b3' : 'white');
-
         if(busca && !(c.nome.toLowerCase().includes(busca) || c.cpf.toLowerCase().includes(busca))) return;
         if(filtro==='pendente' && (c.pago || atrasado)) return;
         if(filtro==='pago' && !c.pago) return;
         if(filtro==='atrasado' && !atrasado) return;
-
-        tbody.innerHTML += `
-            <tr style="background:${corLinha};">
-                <td>${c.nome}</td>
-                <td class="valor-emp">${formatarMoeda(c.valor)}</td>
-                <td class="valor-juros">${formatarMoeda(c.valorJuros)}</td>
-                <td class="valor-total">${formatarMoeda(c.valorFinal)}</td>
-                <td>${c.dataVenc||'-'}</td>
-                <td>
-                    <button onclick="cobrar('${c.telefone}')">💰 Cobrar</button>
-                    <button onclick="excluirCliente(${i})" style="background:red;color:white; margin-top:5px;">❌ Excluir</button>
-                    ${!c.pago ? `<button onclick="marcarPago(${i})" style="background:green;color:white;margin-top:5px;">✅ Pago</button>` : ''}
-                </td>
-            </tr>`;
+        let tr = document.createElement('tr');
+        tr.style.backgroundColor = corLinha;
+        if(atrasado && !c.pago) tr.classList.add('piscar');
+        tr.innerHTML = `
+            <td>${c.nome}</td>
+            <td class="valor-emp">${formatarMoeda(c.valor)}</td>
+            <td class="valor-juros">${formatarMoeda(c.valorJuros)}</td>
+            <td class="valor-total">${formatarMoeda(c.valorFinal)}</td>
+            <td>${c.dataVenc||'-'}</td>
+            <td>
+                <button onclick="cobrar('${c.telefone}')">💰 Cobrar</button>
+                <button onclick="excluirCliente(${i})" style="background:red;color:white; margin-top:5px;">❌ Excluir</button>
+                ${!c.pago ? `<button onclick="marcarPago(${i})" style="background:green;color:white;margin-top:5px;">✅ Pago</button>` : ''}
+            </td>
+        `;
+        tbody.appendChild(tr);
     });
 }
 
