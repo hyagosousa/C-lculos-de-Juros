@@ -140,11 +140,13 @@ document.body.innerHTML = `
 </div>`;
 
 btnLogin.onclick = () => {
-  let usuario = document.getElementById("email").value;
-  let senha = document.getElementById("senha").value;
+  let usuario = document.getElementById("email").value.trim();
+  let senha = document.getElementById("senha").value.trim();
+
+  console.log("Digitado:", usuario, senha);
 
   if (usuario === "H07y0321" && senha === "Helo2020@") {
-      localStorage.setItem("logado", true);
+      localStorage.setItem("logado", "true");
       location.reload();
   } else {
       alert("Login ou senha incorretos!");
@@ -152,7 +154,9 @@ btnLogin.onclick = () => {
 };
 
 // Quando logar, carrega o sistema
-if (localStorage.getItem("logado")) {
+if (localStorage.getItem("logado") === "true") {
+    console.log("Logado com sucesso!");
+}("logado")) {
     console.log("Logado com sucesso!");
 }(user => {
   if (user) {
@@ -163,5 +167,6 @@ if (localStorage.getItem("logado")) {
 </script>
 </body>
 </html>
+
 
 
