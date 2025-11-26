@@ -130,25 +130,31 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-// Tela de login simples
+// Tela de login simples (login fixo solicitado)
 document.body.innerHTML = `
 <div style='max-width:400px;margin:auto;margin-top:60px;background:white;padding:20px;border-radius:10px;box-shadow:0 0 10px #0002;'>
 <h2>Login</h2>
-<input id='email' placeholder='Email' style='width:100%;padding:10px;margin-top:10px;'>
+<input id='email' placeholder='Login' style='width:100%;padding:10px;margin-top:10px;'>
 <input id='senha' type='password' placeholder='Senha' style='width:100%;padding:10px;margin-top:10px;'>
 <button id='btnLogin' style='width:100%;padding:12px;margin-top:15px;background:#007bff;color:white;border:none;border-radius:5px;'>Entrar</button>
 </div>`;
 
 btnLogin.onclick = () => {
-  let email = document.getElementById("email").value;
+  let usuario = document.getElementById("email").value;
   let senha = document.getElementById("senha").value;
-  auth.signInWithEmailAndPassword(email, senha)
-    .then(() => location.reload())
-    .catch(e => alert("Erro no login: " + e.message));
+
+  if (usuario === "H07y0321" && senha === "Helo2020@") {
+      localStorage.setItem("logado", true);
+      location.reload();
+  } else {
+      alert("Login ou senha incorretos!");
+  }
 };
 
 // Quando logar, carrega o sistema
-auth.onAuthStateChanged(user => {
+if (localStorage.getItem("logado")) {
+    console.log("Logado com sucesso!");
+}(user => {
   if (user) {
     // Aqui futuramente carregaremos a interface completa
     console.log("Logado como", user.email);
@@ -157,4 +163,5 @@ auth.onAuthStateChanged(user => {
 </script>
 </body>
 </html>
+
 
