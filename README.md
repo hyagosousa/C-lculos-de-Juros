@@ -29,6 +29,32 @@
 </style>
 </head>
 <body>
+<script>
+// LOGIN SIMPLES QUE SEMPRE APARECE
+// LOGIN SIMPLES QUE SEMPRE APARECE
+if (!localStorage.getItem("logado")) {
+    document.body.innerHTML = `
+    <div style='max-width:400px;margin:auto;margin-top:80px;background:white;padding:25px;border-radius:10px;box-shadow:0 0 10px #0003;'>
+        <h2 style='text-align:center;'>Login</h2>
+        <input id='loginUser' placeholder='Login' style='width:100%;padding:12px;margin-top:10px;'>
+        <input id='loginPass' type='password' placeholder='Senha' style='width:100%;padding:12px;margin-top:10px;'>
+        <button id='btnEntrar' style='width:100%;padding:14px;margin-top:18px;background:#007bff;color:white;border:none;border-radius:6px;'>Entrar</button>
+    </div>`;
+
+    document.getElementById("btnEntrar").onclick = () => {
+        let user = document.getElementById("loginUser").value.trim();
+        let pass = document.getElementById("loginPass").value.trim();
+
+        if (user === "H07y0321" && pass === "Helo2020@") {
+            localStorage.setItem("logado", "true");
+            location.reload();
+        } else {
+            alert("Login ou senha incorretos!");
+        }
+    };
+}
+</script>
+
 <div class="container">
     <h2>Sistema de Empréstimos</h2>
 
@@ -142,3 +168,4 @@ function atualizarTabela(){
 
 </body>
 </html>
+
